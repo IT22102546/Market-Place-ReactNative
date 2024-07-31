@@ -11,10 +11,11 @@
   "dependencies": {
     "@clerk/clerk-expo": "^2.0.0",
     "@expo/metro-runtime": "~3.2.1",
+    "@react-native-picker/picker": "2.7.5",
     "@react-navigation/bottom-tabs": "^6.6.1",
     "@react-navigation/native": "^6.1.18",
     "@types/react": "~18.2.79",
-    "expo": "~51.0.23",
+    "expo": "~51.0.24",
     "expo-status-bar": "~1.12.1",
     "expo-web-browser": "~13.0.3",
     "firebase": "^10.12.4",
@@ -28,7 +29,7 @@
     "react-native-web": "~0.19.10",
     "tailwindcss": "^3.3.2",
     "typescript": "~5.3.3",
-    "@react-native-picker/picker": "2.7.5"
+    "expo-image-picker": "~15.0.7"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0"
