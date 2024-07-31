@@ -24,7 +24,7 @@ export default function Header() {
             </View>
         </View>
 
-        <View className="p-2 bg-white rounded-full px-5 mt-4 flex flex-row items-center border-[2px] border-blue-500">
+        <View className="p-2 bg-blue-50 rounded-full px-5 mt-4 flex flex-row items-center border-[2px] border-blue-200">
             <Ionicons name="search" size={24} color="gray" />
             <TextInput placeholder='Search' className="ml-2 text-[16px]  "
                 onChangeText={(value)=>{
