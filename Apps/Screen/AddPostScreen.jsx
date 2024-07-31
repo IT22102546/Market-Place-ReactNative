@@ -1,4 +1,4 @@
-import { View, Text, TextInput, Button, StyleSheet, TouchableOpacity, Image, ScrollView, ToastAndroid, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, Button, StyleSheet, TouchableOpacity, Image, ScrollView, ToastAndroid, ActivityIndicator, Alert } from 'react-native';
 import React, { useState, useCallback } from 'react';
 import { app } from '../../firebaseConfig';
 import { addDoc, collection, getDocs, getFirestore } from "firebase/firestore";
@@ -7,6 +7,7 @@ import { Formik } from 'formik';
 import { Picker } from '@react-native-picker/picker';
 import * as ImagePicker from 'expo-image-picker';
 import { useFocusEffect } from '@react-navigation/native';
+import { useUser } from '@clerk/clerk-expo';
 
 export default function AddPostScreen() {
   const [image, setImage] = useState(null);
@@ -15,6 +16,7 @@ export default function AddPostScreen() {
   const db = getFirestore(app);
   const [categoryList, setCategoryList] = useState([]);
   const storage = getStorage();
+  const { user } = useUser(); // Destructure user from useUser
   
   useFocusEffect(
     useCallback(() => {
@@ -71,10 +73,22 @@ export default function AddPostScreen() {
           const downloadUrl = await getDownloadURL(uploadTask.snapshot.ref);
           value.image = downloadUrl;
 
+          // Add user details to the value object
+          value.userName = user?.fullName || ''; // Fetch full name or set to an empty string if null
+          value.userEmail = user?.primaryEmailAddress?.emailAddress || ''; // Fetch email address
+          value.userImage = user?.imageUrl || ''; // Fetch user profile image
+
           const docRef = await addDoc(collection(db, "UserPost"), value);
           if (docRef.id) {
             console.log("Document Added");
-            ToastAndroid.show("Post added successfully!", ToastAndroid.SHORT);
+            
+            // Show success alert
+            Alert.alert(
+              "Success",
+              "Post added successfully!",
+              [{ text: "OK" }]
+            );
+
             resetForm();  // Clear form fields
             setImage(null);  // Clear the image state
           }
@@ -94,7 +108,7 @@ export default function AddPostScreen() {
       <Text style={styles.title}>Add new Post</Text>
       <Text style={styles.subtitle}>Add new Product and start Selling</Text>
       <Formik
-        initialValues={{ title: '', desc: '', category: '', address: '', price: '', image: '' }}
+        initialValues={{ title: '', desc: '', category: '', address: '', price: '', image: '', userName:'',userEmail:'',userImage:'' }}
         onSubmit={(value, actions) => onSubmitMethod(value, actions)}
         validate={(values) => {
           const errors = {};
