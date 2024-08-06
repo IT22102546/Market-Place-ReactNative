@@ -109,7 +109,7 @@ export default function AddPostScreen() {
       <Text style={styles.title}>Add new Post</Text>
       <Text style={styles.subtitle}>Add new Product and start Selling</Text>
       <Formik
-        initialValues={{ title: '', desc: '', category: '', address: '', price: '', image: '', userName:'',userEmail:'',userImage:'' , createdAt:Date.now()}}
+        initialValues={{ title: '', desc: '', category: '', address: '', price: '', image: '', userName:'',userEmail:'',userImage:'' , createdAt:Date.now().toString()}}
         onSubmit={(value, actions) => onSubmitMethod(value, actions)}
         validate={(values) => {
           const errors = {};

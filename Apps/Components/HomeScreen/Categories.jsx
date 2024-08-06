@@ -1,4 +1,4 @@
-import { View, Text, FlatList, Image, TouchableOpacity } from 'react-native'
+import { View, Text, FlatList, Image, TouchableOpacity, ScrollView } from 'react-native'
 import React from 'react'
 import { useNavigation } from '@react-navigation/native'
 
@@ -6,7 +6,7 @@ export default function Categories({categoryList}) {
 
   const navigation = useNavigation();
   return (
-    <View className="mt-5">
+    <ScrollView className="mt-5">
       <Text className="font-bold text-[20px]">Categories</Text>
       <FlatList
         data={categoryList}
@@ -25,6 +25,6 @@ export default function Categories({categoryList}) {
             </TouchableOpacity>
         )}
       />
-    </View>
+    </ScrollView>
   )
 }

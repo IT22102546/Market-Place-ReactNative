@@ -7,6 +7,8 @@ import ProfileScreen from '../Screen/ProfileScreen';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import HomeScreenStackNav from './HomeScreenStackNav';
 import HomeScreen from '../Screen/HomeScreen';
+import ExploreStackNavigation from './ExploreStackNavigation';
+import ProfileScreenStackNav from './ProfileScreenStackNav';
 
 
 const Tab = createBottomTabNavigator();
@@ -27,7 +29,7 @@ export default function TabNavigation() {
         }}></Tab.Screen>
 
 
-        <Tab.Screen name='explore' component={ExploreScreen} 
+        <Tab.Screen name='explore-tab' component={ExploreStackNavigation} 
         options={{tabBarLabel:({color})=>(
             <Text style={{color:color,fontSize:12,marginBottom:3}}>Explore</Text>
         )
@@ -45,7 +47,7 @@ export default function TabNavigation() {
             <Ionicons name="camera" size={size} color={color} />
         )}}></Tab.Screen>
 
-        <Tab.Screen name='profile' component={ProfileScreen}
+        <Tab.Screen name='profile' component={ProfileScreenStackNav}
         options={{tabBarLabel:({color})=>(
             <Text style={{color:color,fontSize:12,marginBottom:3}}>Profile</Text>
         )
