@@ -11,7 +11,7 @@ export default function ProfileScreen() {
 
   const { user } = useUser();
   const navigation = useNavigation();
-  const {isLoaded,signOut}=useAuth();
+  const { isLoaded, signOut } = useAuth();
 
   const menuList = [
     {
@@ -46,8 +46,7 @@ export default function ProfileScreen() {
   ];
 
   const onMenuPress = (item) => {
-    if(item.name=='Log out'){
-
+    if (item.name === 'Log out') {
       signOut();
       return;
     }
@@ -60,22 +59,36 @@ export default function ProfileScreen() {
 
   return (
     <View className="p-5 bg-white flex-1">
+      {/* Profile Section */}
       <View className="items-center mt-10">
-        <Image source={{ uri: user.imageUrl }} className="w-[100px] h-[100px] rounded-full"/>
-        <Text className="font-bold text-[20px] mt-2">{user?.fullName}</Text>
-        <Text className="text-[18px] mt-2 text-gray-500">{user?.primaryEmailAddress?.emailAddress}</Text>
+        <Image
+          source={{ uri: user.imageUrl }}
+          className="w-[100px] h-[100px] rounded-full border"
+          accessible={true}
+          accessibilityLabel="Profile picture"
+        />
+        <Text className="font-bold text-[20px] mt-2" accessible={true} accessibilityLabel={`User name: ${user?.fullName}`}>
+          {user?.fullName}
+        </Text>
+        <Text className="text-[18px] mt-2 text-gray-500" accessible={true} accessibilityLabel={`Email address: ${user?.primaryEmailAddress?.emailAddress}`}>
+          {user?.primaryEmailAddress?.emailAddress}
+        </Text>
       </View>
 
+      {/* Menu List */}
       <FlatList
         data={menuList}
         keyExtractor={(item) => item.id.toString()}
         numColumns={3}
         renderItem={({ item }) => (
-          <TouchableOpacity className="p-3 flex-1 border-[1px] items-center m-4 rounded-lg border-blue-400 mx-2 mt-4"
+          <TouchableOpacity
+            className="p-3 flex-1 border-[1px] items-center m-4 rounded-lg border-orange-600 mx-2 mt-4"
             onPress={() => onMenuPress(item)}
+            accessible={true}
+            accessibilityLabel={`Navigate to ${item.name}`}
           >
             {item.icon && (
-              <Image source={item.icon} className="w-[50px] h-[50px]" />
+              <Image source={item.icon} className="w-[50px] h-[50px]" accessible={true} accessibilityLabel={`${item.name} icon`} />
             )}
             <Text className="text-[12px] text-blue-700 mt-3">{item.name}</Text>
           </TouchableOpacity>

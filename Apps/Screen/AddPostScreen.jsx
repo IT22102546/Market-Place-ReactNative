@@ -1,4 +1,8 @@
-import { View, Text, TextInput, Button, StyleSheet, TouchableOpacity, Image, ScrollView, ToastAndroid, ActivityIndicator, Alert, KeyboardAvoidingView } from 'react-native';
+import { 
+  View, Text, TextInput, Button, StyleSheet, 
+  TouchableOpacity, Image, ScrollView, ToastAndroid, 
+  ActivityIndicator, Alert, KeyboardAvoidingView, Platform 
+} from 'react-native';
 import React, { useState, useCallback } from 'react';
 import { app } from '../../firebaseConfig';
 import { addDoc, collection, getDocs, getFirestore } from "firebase/firestore";
@@ -8,6 +12,7 @@ import { Picker } from '@react-native-picker/picker';
 import * as ImagePicker from 'expo-image-picker';
 import { useFocusEffect } from '@react-navigation/native';
 import { useUser } from '@clerk/clerk-expo';
+import Header from '../Components/HomeScreen/Header';
 
 export default function AddPostScreen() {
   const [image, setImage] = useState(null);
@@ -16,8 +21,8 @@ export default function AddPostScreen() {
   const db = getFirestore(app);
   const [categoryList, setCategoryList] = useState([]);
   const storage = getStorage();
-  const { user } = useUser(); // Destructure user from useUser
-  
+  const { user } = useUser();
+
   useFocusEffect(
     useCallback(() => {
       getCategoryList();
@@ -29,7 +34,6 @@ export default function AddPostScreen() {
     const querySnapshot = await getDocs(collection(db, "Category"));
     const categories = [];
     querySnapshot.forEach((doc) => {
-      console.log("Docs:", doc.data());
       categories.push(doc.data());
     });
     setCategoryList(categories);
@@ -42,8 +46,6 @@ export default function AddPostScreen() {
       aspect: [4, 3],
       quality: 1,
     });
-
-    console.log(result);
 
     if (!result.canceled) {
       setImage(result.assets[0].uri);
@@ -65,182 +67,204 @@ export default function AddPostScreen() {
           setUploadProgress(progress);
         }, 
         (error) => {
-          console.error("Upload Error: ", error);
           ToastAndroid.show("Failed to upload image", ToastAndroid.SHORT);
           setIsUploading(false);
         }, 
         async () => {
           const downloadUrl = await getDownloadURL(uploadTask.snapshot.ref);
           value.image = downloadUrl;
-
-          // Add user details to the value object
-          value.userName = user?.fullName || ''; // Fetch full name or set to an empty string if null
-          value.userEmail = user?.primaryEmailAddress?.emailAddress || ''; // Fetch email address
-          value.userImage = user?.imageUrl || ''; // Fetch user profile image
-
-          const docRef = await addDoc(collection(db, "UserPost"), value);
-          if (docRef.id) {
-            console.log("Document Added");
-            
-            // Show success alert
-            Alert.alert(
-              "Success",
-              "Post added successfully!",
-              [{ text: "OK" }]
-            );
-
-            resetForm();  // Clear form fields
-            setImage(null);  // Clear the image state
-          }
+          value.userName = user?.fullName || '';
+          value.userEmail = user?.primaryEmailAddress?.emailAddress || '';
+          value.userImage = user?.imageUrl || '';
+          await addDoc(collection(db, "UserPost"), value);
+          Alert.alert("Success", "Post added successfully!", [{ text: "OK" }]);
+          resetForm();
+          setImage(null);
           setIsUploading(false);
-          setUploadProgress(0);  // Reset progress
+          setUploadProgress(0);
         }
       );
     } catch (error) {
-      console.error("Error adding document: ", error);
       ToastAndroid.show("Failed to add post", ToastAndroid.SHORT);
       setIsUploading(false);
     }
   };
 
   return (
-    <KeyboardAvoidingView>
-        <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>Add new Post</Text>
-      <Text style={styles.subtitle}>Add new Product and start Selling</Text>
-      <Formik
-        initialValues={{ title: '', desc: '', category: '', address: '', price: '', image: '', userName:'',userEmail:'',userImage:'' , createdAt:Date.now().toString()}}
-        onSubmit={(value, actions) => onSubmitMethod(value, actions)}
-        validate={(values) => {
-          const errors = {};
-          if (!values.title) {
-            console.log("Please enter Title");
-            ToastAndroid.show("Please Enter Title", ToastAndroid.SHORT);
-            errors.name = "Please Enter Title";
-          }
-          return errors;
-        }}
-      >
-        {({ handleChange, handleBlur, handleSubmit, setFieldValue, values, errors }) => (
-          <View>
-            <TouchableOpacity onPress={pickImage} disabled={isUploading}>
-              {image ?
-                <Image source={{ uri: image }} style={styles.image} />
-                : <Image source={require('./../../assets/images/placeHolder.jpg')}
-                  style={styles.image}
-                />}
-            </TouchableOpacity>
+    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+      <ScrollView contentContainerStyle={styles.container} className="p-1">
+        <Header/>
+        <Text style={styles.title} className="mt-2">Add New Post</Text>
+        <Text style={styles.subtitle}>Add new product and start selling!</Text>
 
-            <TextInput
-              style={styles.input}
-              placeholder='Title'
-              onChangeText={handleChange('title')}
-              onBlur={handleBlur('title')}
-              value={values?.title}
-              editable={!isUploading}
-            />
-            <TextInput
-              style={styles.input}
-              placeholder='Description'
-              onChangeText={handleChange('desc')}
-              onBlur={handleBlur('desc')}
-              numberOfLines={5}
-              value={values?.desc}
-              editable={!isUploading}
-            />
-
-            <TextInput
-              style={styles.input}
-              placeholder='Address'
-              onChangeText={handleChange('address')}
-              onBlur={handleBlur('address')}
-              value={values?.address}
-              editable={!isUploading}
-            />
-            <TextInput
-              style={styles.input}
-              placeholder='Price'
-              onChangeText={handleChange('price')}
-              onBlur={handleBlur('price')}
-              keyboardType='number-pad'
-              value={values?.price}
-              editable={!isUploading}
-            />
-            <View style={styles.pickerContainer}>
-              <Picker
-                selectedValue={values?.category}
-                style={styles.input}
-                onValueChange={(itemValue) => setFieldValue('category', itemValue)}
-                enabled={!isUploading}
+        <Formik
+          initialValues={{ title: '', desc: '', category: '', address: '', price: '' }}
+          onSubmit={(value, actions) => onSubmitMethod(value, actions)}
+          validate={(values) => {
+            const errors = {};
+            if (!values.title) {
+              ToastAndroid.show("Please Enter Title", ToastAndroid.SHORT);
+              errors.name = "Please Enter Title";
+            }
+            return errors;
+          }}
+        >
+          {({ handleChange, handleBlur, handleSubmit, setFieldValue, values, errors }) => (
+            <View>
+              {/* Image Picker */}
+              <TouchableOpacity 
+                onPress={pickImage} 
+                style={styles.imagePicker} 
+                disabled={isUploading}
+                accessible={true} 
+                accessibilityLabel="Pick an image for your post"
               >
-                {categoryList && categoryList.map((item, index) => (
-                  <Picker.Item key={index} label={item.name} value={item.name} />
-                ))}
-              </Picker>
-            </View>
+                {image ? (
+                  <Image source={{ uri: image }} style={styles.image} />
+                ) : (
+                  <Image source={require('./../../assets/images/placeHolder.jpg')} style={styles.image} />
+                )}
+              </TouchableOpacity>
 
-            <TouchableOpacity onPress={handleSubmit} style={styles.submitButton} disabled={isUploading}>
-              {isUploading ? (
-                <ActivityIndicator size="small" color="#fff" />
-              ) : (
-                <Text style={styles.submitButtonText}>Submit</Text>
-              )}
-            </TouchableOpacity>
+              {/* Form Inputs */}
+              <TextInput
+                style={styles.input}
+                placeholder='Title'
+                onChangeText={handleChange('title')}
+                onBlur={handleBlur('title')}
+                value={values.title}
+                editable={!isUploading}
+                accessible={true}
+                accessibilityLabel="Enter the title of your product"
+                className="border border-orange-600 bg-gray-50"
+              />
+              <TextInput
+                style={styles.input}
+                placeholder='Description'
+                onChangeText={handleChange('desc')}
+                onBlur={handleBlur('desc')}
+                value={values.desc}
+                numberOfLines={5}
+                editable={!isUploading}
+                accessible={true}
+                accessibilityLabel="Enter a description of your product"
+                className="border border-orange-600 bg-gray-50"
+              />
+              <TextInput
+                style={styles.input}
+                placeholder='Address'
+                onChangeText={handleChange('address')}
+                onBlur={handleBlur('address')}
+                value={values.address}
+                editable={!isUploading}
+                accessible={true}
+                accessibilityLabel="Enter your address"
+                className="border border-orange-600 bg-gray-50"
+              />
+              <TextInput
+                style={styles.input}
+                placeholder='Price'
+                onChangeText={handleChange('price')}
+                onBlur={handleBlur('price')}
+                keyboardType='number-pad'
+                value={values.price}
+                editable={!isUploading}
+                accessible={true}
+                accessibilityLabel="Enter the price of your product"
+                className="border border-orange-600 bg-gray-50"
+              />
 
-            {isUploading && (
-              <View style={styles.progressContainer}>
-                <Text>Uploading: {Math.round(uploadProgress)}%</Text>
+              {/* Category Picker */}
+              <View style={styles.pickerContainer}>
+                <Picker
+                  selectedValue={values.category}
+                  style={styles.input}
+                  onValueChange={(itemValue) => setFieldValue('category', itemValue)}
+                  enabled={!isUploading}
+                  accessible={true}
+                  accessibilityLabel="Pick a category"
+                  className="border border-orange-600 bg-gray-50"
+                >
+                  {categoryList.map((item, index) => (
+                    <Picker.Item key={index} label={item.name} value={item.name}   className="border border-orange-600 bg-gray-50"/>
+                  ))}
+                </Picker>
               </View>
-            )}
-          </View>
-        )}
-      </Formik>
-    </ScrollView>
+
+              {/* Submit Button */}
+              <TouchableOpacity 
+                onPress={handleSubmit} 
+                style={styles.submitButton} 
+                disabled={isUploading}
+                accessible={true} 
+                accessibilityLabel="Submit your post"
+                className="border-white"
+              >
+                {isUploading ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <Text style={styles.submitButtonText}>Submit</Text>
+                )}
+              </TouchableOpacity>
+
+              {/* Upload Progress */}
+              {isUploading && (
+                <View style={styles.progressContainer} accessible={true} accessibilityLabel={`Upload progress: ${Math.round(uploadProgress)}%`}>
+                  <Text>Uploading: {Math.round(uploadProgress)}%</Text>
+                </View>
+              )}
+            </View>
+          )}
+        </Formik>
+      </ScrollView>
     </KeyboardAvoidingView>
-    
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     padding: 20,
+    backgroundColor: '#f9f9f9',
   },
   title: {
     fontWeight: 'bold',
     fontSize: 27,
+    color: '#333',
+    marginBottom: 10,
   },
   subtitle: {
     fontWeight: 'bold',
-    fontSize: 13,
+    fontSize: 15,
     color: 'gray',
-    marginBottom: 25,
+    marginBottom: 20,
   },
   input: {
     borderWidth: 1,
     borderRadius: 10,
-    padding: 10,
-    paddingHorizontal: 19,
-    marginTop: 10,
-    marginBottom: 5,
-    fontSize: 15,
-    marginVertical: 5,
-    textAlignVertical: 'top'
+    padding: 12,
+    marginVertical: 10,
+    fontSize: 16,
+  },
+  imagePicker: {
+    alignItems: 'center',
+    marginVertical: 15,
   },
   image: {
-    width: 100,
-    height: 100,
+    width: 120,
+    height: 120,
     borderRadius: 10,
   },
   pickerContainer: {
     borderWidth: 1,
     borderRadius: 10,
     marginTop: 10,
+    borderColor:"#FF6500"
   },
   submitButton: {
     padding: 16,
-    backgroundColor: 'blue',
-    marginTop: 20,
+    backgroundColor: '#FF6500',
     borderRadius: 10,
+    marginTop: 20,
     alignItems: 'center',
   },
   submitButtonText: {

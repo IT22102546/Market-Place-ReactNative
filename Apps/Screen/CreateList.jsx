@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react'
 import { collection, getDocs, getFirestore, orderBy, query, where } from 'firebase/firestore'
 import { app } from '../../firebaseConfig'
 import LatestItemList from '../Components/HomeScreen/LatestItemList';
+import Header from '../Components/HomeScreen/Header';
 
 export default function CreateList() {
   const db = getFirestore(app);
@@ -22,7 +23,8 @@ export default function CreateList() {
     })
   }
   return (
-    <View className="p-5 py-8">
+    <View className="p-6 bg-white">
+      <Header/>
       <Text className="text-[20px] font-bold">Create Your List</Text>
       <LatestItemList latestItemList={productList}/>
     </View>

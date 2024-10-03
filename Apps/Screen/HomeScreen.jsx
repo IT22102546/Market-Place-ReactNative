@@ -1,4 +1,4 @@
-import { View, ScrollView } from 'react-native';
+import { View, ScrollView, Text } from 'react-native';
 import Header from '../Components/HomeScreen/Header';
 import Slider from '../Components/HomeScreen/Slider';
 import { collection, getDocs, getFirestore, orderBy } from 'firebase/firestore';
@@ -12,7 +12,7 @@ export default function HomeScreen() {
   const db = getFirestore(app);
   const [sliderList, setSliderList] = useState([]);
   const [categoryList, setCategoryList] = useState([]);
-  const [latestItemList, setlatestItemList] = useState([]);
+  const [latestItemList, setLatestItemList] = useState([]);
 
   useEffect(() => {
     getSliders();
@@ -22,39 +22,53 @@ export default function HomeScreen() {
 
   const getSliders = async () => {
     setSliderList([]);
-    const querySnapshot = await getDocs(collection(db, "sliders"));
+    const querySnapshot = await getDocs(collection(db, 'sliders'));
     querySnapshot.forEach((doc) => {
-      console.log(doc.id, "=>", doc.data());
+      console.log(doc.id, '=>', doc.data());
       setSliderList((prevSliderList) => [...prevSliderList, doc.data()]);
     });
   };
 
   const getCategoryList = async () => {
     setCategoryList([]);
-    const querySnapshot = await getDocs(collection(db, "Category"));
+    const querySnapshot = await getDocs(collection(db, 'Category'));
     const categories = [];
     querySnapshot.forEach((doc) => {
-      console.log("Docs:", doc.data());
+      console.log('Docs:', doc.data());
       categories.push(doc.data());
     });
     setCategoryList(categories);
   };
 
   const getLatestItemList = async () => {
-    setlatestItemList([]);
-    const querySnapshot = await getDocs(collection(db, "UserPost") , orderBy('createdAt','desc'));
+    setLatestItemList([]);
+    const querySnapshot = await getDocs(collection(db, 'UserPost'), orderBy('createdAt', 'desc'));
     querySnapshot.forEach((doc) => {
-      console.log("Docs", doc.data);
-      setlatestItemList(latestItemList => [...latestItemList, doc.data()]);
+      console.log('Docs', doc.data());
+      setLatestItemList((latestItemList) => [...latestItemList, doc.data()]);
     });
   };
 
   return (
-    <ScrollView style={tw`p-6 bg-white flex-1`}>
+    <ScrollView
+      style={tw`p-6 bg-white flex-1`}
+      accessible={true}
+      accessibilityLabel="Home Screen, scrollable content"
+    >
       <Header />
-      <Slider sliderList={sliderList} />
-      <Categories categoryList={categoryList} />
-      <LatestItemList latestItemList={latestItemList} heading={'Latest Items'} />
+      {/* Slider Section */}
+      <Slider sliderList={sliderList} accessible={true} accessibilityLabel="Image slider of featured items" />
+
+      {/* Categories Section */}
+      <Categories categoryList={categoryList} accessible={true} accessibilityLabel="Categories of items" />
+
+      {/* Latest Items Section */}
+      <LatestItemList
+        latestItemList={latestItemList}
+        heading="Latest Items"
+        accessible={true}
+        accessibilityLabel="List of latest added items"
+      />
     </ScrollView>
   );
 }

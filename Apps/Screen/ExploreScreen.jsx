@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react'
 import { collection, getDocs, getFirestore, orderBy, query, where } from 'firebase/firestore'
 import { app } from '../../firebaseConfig'
 import LatestItemList from '../Components/HomeScreen/LatestItemList';
+import Header from '../Components/HomeScreen/Header';
 
 export default function ExploreScreen() {
 
@@ -23,8 +24,9 @@ export default function ExploreScreen() {
     })
   }
   return (
-    <View className="p-5 py-8">
-      <Text className="text-[20px] font-bold">Explore More</Text>
+    <View className="p-6 bg-white">
+      <Header/>
+      <Text className="text-[20px] font-bold mt-5">Explore More</Text>
       <LatestItemList latestItemList={productList}/>
     </View>
   )

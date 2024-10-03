@@ -1,30 +1,44 @@
-import { View, Text, FlatList, Image, TouchableOpacity, ScrollView } from 'react-native'
-import React from 'react'
-import { useNavigation } from '@react-navigation/native'
+import { View, Text, FlatList, Image, TouchableOpacity, ScrollView } from 'react-native';
+import React from 'react';
+import { useNavigation } from '@react-navigation/native';
+import tw from 'twrnc';
 
-export default function Categories({categoryList}) {
-
+export default function Categories({ categoryList }) {
   const navigation = useNavigation();
+
   return (
-    <ScrollView className="mt-5">
-      <Text className="font-bold text-[20px]">Categories</Text>
+    <ScrollView style={tw`mt-1`} accessible={true} accessibilityLabel="Categories section">
+      <Text style={tw`font-bold text-xl mb-4`} accessible={true} accessibilityRole="header">
+        Categories
+      </Text>
       <FlatList
         data={categoryList}
         numColumns={4}
-        renderItem={({item,index})=>(
-            <TouchableOpacity className="flex flex-1 items-center justify-center  p-2 border-[1px] border-gray-200 m-1 h-[80px] rounded-lg bg-blue-50"
-              onPress={()=>navigation.navigate('item-list',{
-                category:item.name
-              })}
-            >
-
-                <Image source={{uri:item.icon}}
-                    className="w-[40px] h-[40px]"
-                />
-                <Text className="text-[10px] mt-1">{item.name}</Text>
-            </TouchableOpacity>
+        keyExtractor={(item, index) => index.toString()} // Added a key extractor for better list rendering
+        renderItem={({ item, index }) => (
+          <TouchableOpacity
+            style={tw`flex-1 items-center justify-center p-2 border border-orange-200 m-1 h-20 rounded-lg bg-white`}
+            onPress={() =>
+              navigation.navigate('item-list', {
+                category: item.name,
+              })
+            }
+            accessible={true}
+            accessibilityRole="button"
+            accessibilityLabel={`Category ${item.name}`}
+          >
+            <Image
+              source={{ uri: item.icon }}
+              style={tw`w-10 h-10`}
+              accessible={true}
+              accessibilityLabel={`${item.name} icon`}
+            />
+            <Text style={tw`text-xs mt-1`} accessible={true}>
+              {item.name}
+            </Text>
+          </TouchableOpacity>
         )}
       />
     </ScrollView>
-  )
+  );
 }

@@ -18,14 +18,14 @@ export default function HomeScreenStackNav() {
         />
         <Stack.Screen name='item-list' component={ItemList}
             options={({ route }) => ({ title: route.params.category , headerStyle:{
-                backgroundColor:'#3b82f6'
+                backgroundColor:'#FF6500'
             }, headerTintColor:'#fff' })}
         />
 
         <Stack.Screen name='product-detail' component={ProductDetail}
             options={{
                 headerStyle:{
-                    backgroundColor:'#3b82f6'
+                    backgroundColor:'#FF6500'
                 },
                 headerTintColor:'#fff',
                 headerTitle:'Detail' 

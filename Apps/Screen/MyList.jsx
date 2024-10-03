@@ -39,19 +39,39 @@ export default function MyList() {
   };
 
   const renderItem = ({ item }) => (
-    <View className="bg-white p-3 border-b border-gray-200 rounded-lg shadow-sm flex-row items-center justify-between">
-      <Image source={{ uri: item.image }} className="h-[100px] w-[100px] rounded-lg" />
+    <View className="bg-white p-3 mb-4 border-b-4 border-orange-600 shadow-lg rounded-lg flex-row items-center justify-between">
+      {/* Product Image */}
+      <Image
+        source={{ uri: item.image }}
+        className="h-[100px] w-[100px] rounded-lg"
+        accessible={true}
+        accessibilityLabel={`Image of ${item.title}`}
+      />
+      
+      {/* Product Details */}
       <View className="flex-1 ml-4">
-        <Text className="font-bold text-[18px]">{item.title}</Text>
-        <Text className="text-gray-500 mt-2">{item.desc}</Text>
+        <Text className="font-bold text-[18px]" accessible={true} accessibilityLabel={`Title ${item.title}`}>
+          {item.title}
+        </Text>
+        <Text className="text-gray-500 mt-2" accessible={true} accessibilityLabel={`Description ${item.desc}`}>
+          {item.desc}
+        </Text>
         <View className="flex-row items-center mt-3">
-          <Text className="text-blue-500">{item.category}</Text>
-          <Text className="text-gray-700 ml-2">- Rs.{item.price}</Text>
+          <Text className="text-orange-500" accessible={true} accessibilityLabel={`Category ${item.category}`}>
+            {item.category}
+          </Text>
+          <Text className="text-gray-700 ml-2" accessible={true} accessibilityLabel={`Price Rs.${item.price}`}>
+            - Rs.{item.price}
+          </Text>
         </View>
       </View>
-      <TouchableOpacity 
+      
+      {/* Remove Button */}
+      <TouchableOpacity
         className="bg-red-500 p-2 rounded-lg"
         onPress={() => handleRemove(item.id, item.price)}
+        accessible={true}
+        accessibilityLabel={`Remove ${item.title} from list`}
       >
         <Text className="text-white font-bold">Remove</Text>
       </TouchableOpacity>
@@ -59,16 +79,21 @@ export default function MyList() {
   );
 
   return (
-    <View className="flex-1">
+    <View className="flex-1 bg-gray-50">
+      {/* Item List */}
       <FlatList
         data={myList}
         renderItem={renderItem}
         keyExtractor={(item) => item.id}
         contentContainerStyle={{ padding: 20 }}
       />
+      
+      {/* Total Amount */}
       {myList.length > 0 && (
-        <View className="bg-white p-4 border-t border-gray-200">
-          <Text className="font-bold text-[18px] text-right">Total: Rs.{totalAmount.toFixed(2)}</Text>
+        <View className="bg-white p-4 border-t border-orange-500" accessible={true} accessibilityLabel={`Total price Rs.${totalAmount.toFixed(2)}`}>
+          <Text className="font-bold text-[18px] text-right">
+            Total: Rs.{totalAmount.toFixed(2)}
+          </Text>
         </View>
       )}
     </View>
