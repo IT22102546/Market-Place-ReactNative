@@ -34,6 +34,12 @@ export default function ProfileScreen() {
     },
     {
       id: 4,
+      name: 'My List',
+      icon: link,
+      path: 'my-list'
+    },
+    {
+      id: 5,
       name: 'Log out',
       icon: logout
     }

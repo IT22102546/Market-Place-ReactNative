@@ -9,6 +9,9 @@ import HomeScreenStackNav from './HomeScreenStackNav';
 import HomeScreen from '../Screen/HomeScreen';
 import ExploreStackNavigation from './ExploreStackNavigation';
 import ProfileScreenStackNav from './ProfileScreenStackNav';
+import ItemList from '../Screen/ItemList';
+import LatestItemList from '../Components/HomeScreen/LatestItemList';
+import CreateListStackNavigation from './CreateListStackNavigation';
 
 
 const Tab = createBottomTabNavigator();
@@ -54,6 +57,15 @@ export default function TabNavigation() {
         ,
         tabBarIcon:({color,size})=>(
             <Ionicons name="person-circle"size={size} color={color} />
+        )}}></Tab.Screen>
+
+        <Tab.Screen name='list' component={CreateListStackNavigation}
+        options={{tabBarLabel:({color})=>(
+            <Text style={{color:color,fontSize:12,marginBottom:3}}>Create List</Text>
+        )
+        ,
+        tabBarIcon:({color,size})=>(
+            <Ionicons name="list"size={size} color={color} />
         )}}></Tab.Screen>
     </Tab.Navigator>
   )
