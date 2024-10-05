@@ -22,7 +22,7 @@ export default function ProfileScreenStackNav() {
             name="my-product" 
             component={MyProduct}
             options={{
-                headerStyle: { backgroundColor: '#3b82f6' },
+                headerStyle: { backgroundColor: '#FF6500' },
                 headerTintColor: '#fff',
                 headerTitle: 'My Products'
             }}
@@ -31,7 +31,7 @@ export default function ProfileScreenStackNav() {
             name="product-detail" 
             component={ProductDetail}
             options={{
-                headerStyle: { backgroundColor: '#3b82f6' },
+                headerStyle: { backgroundColor: '#FF6500' },
                 headerTintColor: '#fff',
                 headerTitle: 'Detail'
             }}
@@ -40,7 +40,7 @@ export default function ProfileScreenStackNav() {
             name="my-list" 
             component={MyList} 
             options={{
-                headerStyle: { backgroundColor: '#3b82f6' },
+                headerStyle: { backgroundColor: '#FF6500' },
                 headerTintColor: '#fff',
                 headerTitle: 'My List'
             }}

@@ -19,7 +19,7 @@ export default function CreateListStackNavigation() {
             <Stack.Screen name='product-detail' component={ProductDetail}
             options={{
                 headerStyle:{
-                    backgroundColor:'#3b82f6'
+                    backgroundColor:'#FF6500'
                 },
                 headerTintColor:'#fff',
                 headerTitle:'Detail' 

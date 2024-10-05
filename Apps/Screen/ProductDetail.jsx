@@ -28,7 +28,7 @@ export default function ProductDetail({ navigation }) {
   const shareButton = () => {
     navigation.setOptions({
       headerRight: () => (
-        <Ionicons name="share-social" size={24} color="white" className="mr-4" onPress={() => shareProduct()} />
+        <Ionicons name="share-social" size={24} color="white" className="mr-4" onPress={shareProduct} />
       ),
     });
   };
@@ -49,14 +49,13 @@ export default function ProductDetail({ navigation }) {
   };
 
   const deleteUserPost = () => {
-    Alert.alert('Do You want to Delete?', 'Are you sure want to Delete this Post?', [
+    Alert.alert('Delete Post', 'Are you sure you want to delete this post?', [
       {
         text: 'Yes',
-        onPress: () => deleteFromFireStore(),
+        onPress: deleteFromFireStore,
       },
       {
         text: 'Cancel',
-        onPress: () => console.log('Cancel Pressed'),
         style: 'cancel',
       },
     ]);
@@ -86,52 +85,80 @@ export default function ProductDetail({ navigation }) {
 
   return (
     <ScrollView className="bg-white">
-      <Image source={{ uri: product.image }} className="h-[320px] w-full" />
-      <View className="p-3">
-        <Text className="text-[20px] font-bold">{product?.title}</Text>
-        <View className="items-baseline">
-          <Text className="p-1 px-2 mt-2 rounded-full bg-blue-200 text-blue-500">{product.category}</Text>
-        </View>
-
-        <Text className="mt-3 font-bold text-[20px]">Description</Text>
-        <Text className="text-[14px]">{product?.desc}</Text>
-      </View>
-
-      <View className="p-3 flex flex-row gap-3 items-center bg-blue-100 border-gray-400">
-        <Image source={{ uri: product.userImage }} className="w-12 h-12 rounded-full" />
-        <View>
-          <Text className="font-bold text-[18px]">{product.userName}</Text>
-          <Text className="text-gray-500">{product.userEmail}</Text>
-        </View>
-      </View>
-
-      {user?.primaryEmailAddress?.emailAddress === product.userEmail ? (
-        <TouchableOpacity
-          onPress={deleteUserPost}
-          className="z-40 bg-red-500 rounded-full p-4 m-2"
-        >
-          <Text className="text-center text-white">Delete Post</Text>
-        </TouchableOpacity>
-      ) : (
-        <>
-          <TouchableOpacity
-            onPress={sendEmailMessage}
-            className="z-40 bg-blue-500 rounded-full p-4 m-2"
-          >
-            <Text className="text-center text-white">Send Message</Text>
-          </TouchableOpacity>
-
-          
-        </>
+      {/* Product Image */}
+      <Image 
+        source={{ uri: product.image }} 
+        className="h-[320px] w-full object-cover"
+        accessible={true} 
+        accessibilityLabel={`Image of ${product.title}`} 
+      />
+      
+      {/* Product Information */}
+      <View className="p-4">
+        <Text className="text-[24px] font-bold" accessible={true} accessibilityLabel={`Product title ${product.title}`}>
+          {product?.title}
+        </Text>
+        <Text className="p-1 px-2 mt-2 rounded-full bg-blue-200 text-blue-500 text-[14px]" accessible={true} accessibilityLabel={`Category ${product.category}`}>
+          {product.category}
+        </Text>
         
-      )}
+        <Text className="mt-4 text-[20px] font-bold">Description</Text>
+        <Text className="text-[16px] mt-2" accessible={true} accessibilityLabel={`Description ${product.desc}`}>
+          {product?.desc}
+        </Text>
+      </View>
 
-        <TouchableOpacity
-            onPress={addToList}
-            className="z-40 bg-green-500 rounded-full p-4 m-2"
+      {/* User Info */}
+      <View className="p-4 flex-row gap-3 items-center bg-blue-100 border-t border-gray-200">
+        <Image 
+          source={{ uri: product.userImage }} 
+          className="w-12 h-12 rounded-full"
+          accessible={true} 
+          accessibilityLabel={`User profile image of ${product.userName}`} 
+        />
+        <View>
+          <Text className="font-bold text-[18px]" accessible={true} accessibilityLabel={`User name ${product.userName}`}>
+            {product.userName}
+          </Text>
+          <Text className="text-gray-500" accessible={true} accessibilityLabel={`User email ${product.userEmail}`}>
+            {product.userEmail}
+          </Text>
+        </View>
+      </View>
+
+      {/* Action Buttons */}
+      <View className="p-4">
+        {user?.primaryEmailAddress?.emailAddress === product.userEmail ? (
+          <TouchableOpacity 
+            onPress={deleteUserPost} 
+            className="bg-red-500 rounded-full p-4 my-2"
+            accessible={true}
+            accessibilityLabel="Delete your post"
           >
-            <Text className="text-center text-white">Add To List</Text>
+            <Text className="text-center text-white">Delete Post</Text>
           </TouchableOpacity>
+        ) : (
+          <>
+            <TouchableOpacity 
+              onPress={sendEmailMessage} 
+              className="bg-blue-500 rounded-full p-4 my-2"
+              accessible={true}
+              accessibilityLabel="Send message to seller"
+            >
+              <Text className="text-center text-white">Send Message</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              onPress={addToList} 
+              className="bg-green-500 rounded-full p-4 my-2"
+              accessible={true}
+              accessibilityLabel="Add product to your list"
+            >
+              <Text className="text-center text-white">Add To List</Text>
+            </TouchableOpacity>
+          </>
+        )}
+      </View>
     </ScrollView>
   );
 }
