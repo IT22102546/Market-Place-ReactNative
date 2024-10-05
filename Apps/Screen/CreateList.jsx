@@ -245,17 +245,47 @@ export default function CreateList() {
     }
   }
 
-  // Fetch nearby shops (implement this according to your needs)
-  const findNearbyShops = () => {
-    // Your logic to find and fetch nearby shops goes here
-    Alert.alert('Finding shops...', 'Feature not yet implemented.');
+  const findNearbyShops = async () => {
+    try {
+      const querySnapshot = await getDocs(collection(db, 'users')); // Fetching from the "users" collection
+      
+      if (querySnapshot.empty) {
+        Alert.alert('No shops found');
+        Speech.speak('No shops found nearby.');
+        return;
+      }
+
+      const shopList = [];
+      querySnapshot.forEach((doc) => {
+        const shopData = doc.data();
+        
+        // Ensure the document has shop details
+        if (shopData.shopID && shopData.shopname) {
+          shopList.push({
+            shopID: shopData.shopID,
+            shopname: shopData.shopname,
+            brnumber: shopData.brnumber,  // Assuming brnumber is stored in the shop document
+          });
+        }
+      });
+
+      setShops(shopList);  // Save the shop list to state
+      console.log(shopList);
+      if (shopList.length > 0) {
+        Speech.speak('Nearby shops found. You can select a shop from the list.');
+        shopList.forEach((shop) => {
+          Speech.speak(`Shop: ${shop.shopname}`);
+        });
+      } else {
+        Speech.speak('No shops found nearby.');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to fetch shops.');
+      Speech.speak('Failed to fetch nearby shops.');
+    }
   };
 
-  // Select a shop (implement this according to your needs)
-  const selectShopByName = (shopName) => {
-    // Your logic to handle shop selection goes here
-    Alert.alert('Shop selected', `You selected ${shopName}.`);
-  };
+ 
 
   return (
     <View style={styles.container}>
