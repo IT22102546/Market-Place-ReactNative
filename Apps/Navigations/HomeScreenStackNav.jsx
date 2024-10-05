@@ -4,6 +4,10 @@ import { createStackNavigator } from '@react-navigation/stack';
 import HomeScreen from '../Screen/HomeScreen';
 import ItemList from '../Screen/ItemList';
 import ProductDetail from '../Screen/ProductDetail';
+import Categories from '../Components/HomeScreen/Categories';
+import LatestItemList from '../Components/HomeScreen/LatestItemList';
+import VoiceItemList from '../Screen/VoiceItemLits';
+import { ScrollView } from 'react-native-gesture-handler';
 
 const Stack = createStackNavigator();
 
@@ -21,6 +25,16 @@ export default function HomeScreenStackNav() {
                 backgroundColor:'#FF6500'
             }, headerTintColor:'#fff' })}
         />
+
+        <Stack.Screen name='item' component={VoiceItemList}
+            options={({ route }) => ({ 
+            title: route.params.categoryName, 
+            headerStyle: { backgroundColor: '#FF6500' },
+            headerTintColor: '#fff'
+            })}
+        />
+
+      
 
         <Stack.Screen name='product-detail' component={ProductDetail}
             options={{

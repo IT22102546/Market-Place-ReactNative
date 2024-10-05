@@ -5,20 +5,22 @@ import { collection, getDocs, getFirestore, query, where } from 'firebase/firest
 import { app } from '../../firebaseConfig';
 import LatestItemList from '../Components/HomeScreen/LatestItemList';
 
-export default function ItemList() {
-  const { params } = useRoute();
+export default function VoiceItemList() {
+  const { params } = useRoute();  // Capture params
   const db = getFirestore(app);
   const [itemList, setItemList] = useState([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (params) getItemListByCategory();
+    if (params && params.categoryName) {
+      getItemListByCategory(params.categoryName);  
+    }
   }, [params]);
 
-  const getItemListByCategory = async () => {
+  const getItemListByCategory = async (categoryName) => {
     setItemList([]);
     setLoading(true);
-    const q = query(collection(db, 'UserPost'), where('category', '==', params.category));
+    const q = query(collection(db, 'UserPost'), where('category', '==', categoryName));
     const snapshot = await getDocs(q);
     setLoading(false);
     snapshot.forEach(doc => {
@@ -27,10 +29,9 @@ export default function ItemList() {
   };
 
   return (
-    
     <View className="flex-1 p-4 bg-gray-100">
-      <ScrollView>
-      {loading ? (
+        <ScrollView>
+        {loading ? (
         <View className="flex-1 justify-center items-center">
           <ActivityIndicator
             size={'large'}
@@ -55,8 +56,8 @@ export default function ItemList() {
           No Product Available
         </Text>
       )}
-      </ScrollView>
-      
+        </ScrollView>
+     
     </View>
   );
 }

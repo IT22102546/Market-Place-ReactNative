@@ -24,7 +24,7 @@ export default function PostItem({ item }) {
         source={{ uri: item.image }}
         style={[
           tw`w-full rounded-lg`, 
-          { height: screenWidth * 0.5 } // Make height responsive based on screen width (e.g., 60% of screen width)
+          { height: screenWidth * 0.5 } // Make height responsive based on screen width
         ]}
         resizeMode="cover" // Ensures the image fills the container
         accessible={true}
