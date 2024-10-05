@@ -98,6 +98,10 @@ export default function CreateList() {
       const shopName = lowerCaseCommand.replace('select', '').trim();
       selectShopByName(shopName); // Handle selecting a shop by its name
     }
+     // Handle "tell total amount" command
+   else if (lowerCaseCommand.includes('tell total amount')) {
+    tellTotalAmount(); // Calculate and speak the total amount
+  }
     else {
       Alert.alert("Command not recognized", `You said: "${command}"`);
     }
@@ -123,6 +127,15 @@ export default function CreateList() {
 
     // Use Text-to-Speech (TTS) to confirm item added
     Speech.speak(`${item} added to your list`);
+  };
+
+  // Function to calculate and announce the total amount of items
+  const tellTotalAmount = () => {
+    const totalAmount = shoppingList.reduce((total, item) => {
+      return total + (item.price || 0); // Assuming each item has a price property
+    }, 0);
+    
+    Speech.speak(`The total amount of your shopping list is ${totalAmount} rupees.`);
   };
 
   // Remove item from the shopping list and Firestore
@@ -183,21 +196,25 @@ export default function CreateList() {
     try {
       const q = query(collection(db, 'UserLists'), where('userId', '==', user.id));
       const querySnapshot = await getDocs(q);
-
+  
       if (querySnapshot.empty) {
         Alert.alert('No list found', 'You have not saved any shopping list.');
         Speech.speak('You have no saved shopping list.');
         return;
       }
-
+  
       const fetchedList = [];
       querySnapshot.forEach((doc) => {
         const data = doc.data();
         if (data.title) {
-          fetchedList.push({ name: data.title, firestoreId: doc.id }); // Add Firestore ID here
+          fetchedList.push({
+            name: data.title,        
+            price: data.price,      
+            firestoreId: doc.id     
+          });
         }
       });
-
+  
       setShoppingList(fetchedList);
       Speech.speak('Your shopping list has been opened.');
     } catch (error) {
@@ -206,15 +223,20 @@ export default function CreateList() {
     }
   };
 
+  
+  
+
   const readShoppingList = () => {
     if (shoppingList.length === 0) {
       Speech.speak('Your shopping list is empty.');
       return;
     }
   
-    const items = shoppingList.map(item => item.name).join(', ');
+    // Map over shoppingList to include both name and price
+    const items = shoppingList.map(item => `${item.name} priced at ${item.price} rupees`).join(', ');
     Speech.speak(`Your shopping list contains: ${items}`);
   };
+  
  
   const removeAllItems = () => {
     setShoppingList([]);
