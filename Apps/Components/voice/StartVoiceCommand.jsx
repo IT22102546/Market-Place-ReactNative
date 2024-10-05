@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { View, Text, Button, Platform, Alert, TouchableOpacity, StyleSheet } from 'react-native';
 import * as Speech from 'expo-speech';
+import { useNavigation } from '@react-navigation/native';
 
 export default function VoiceCommandApp() {
   const [transcript, setTranscript] = useState('');
   const [isListening, setIsListening] = useState(false);
+  const navigation = useNavigation();
 
   const startVoiceCommand = () => {
     if (Platform.OS !== 'web') {
@@ -32,6 +34,7 @@ export default function VoiceCommandApp() {
       const spokenText = event.results[0][0].transcript;
       setTranscript(spokenText);
       console.log("Spoken text:", spokenText);
+      handleVoiceCommand(spokenText);
     };
 
     recognition.onerror = (event) => {
@@ -44,6 +47,33 @@ export default function VoiceCommandApp() {
     };
 
     recognition.start();
+  };
+
+   // Function to handle specific voice commands and navigate
+   const handleVoiceCommand = (command) => {
+    const lowerCaseCommand = command.toLowerCase();
+
+    // Navigate to Home screen if the user says "go to home"
+    if (lowerCaseCommand.includes('go to home')) {
+      navigation.navigate('home-nav');  // Example: Home Tab
+    }
+    // Navigate to Profile screen if the user says "go to profile"
+    else if (lowerCaseCommand.includes('go to profile')) {
+      navigation.navigate('profile');  // Example: Profile Tab
+    }
+    else if (lowerCaseCommand.includes('go to explore')) {
+        navigation.navigate('explore-tab');  // Example: Profile Tab
+    }
+    else if (lowerCaseCommand.includes('go to add post')) {
+        navigation.navigate('addpost');  // Example: Profile Tab
+    }
+    else if (lowerCaseCommand.includes('go to create list')) {
+        navigation.navigate('list');  // Example: Profile Tab
+    }
+    // Add other commands as needed
+    else {
+      Alert.alert("Command not recognized", `You said: "${command}"`);
+    }
   };
 
   return (
