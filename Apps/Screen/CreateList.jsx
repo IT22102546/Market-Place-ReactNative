@@ -1,28 +1,48 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, FlatList, Alert, StyleSheet, Platform } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';  // For the mic icon
-import { useNavigation } from '@react-navigation/native';
-import * as Speech from 'expo-speech';  // For text-to-speech feedback
-import { getFirestore, collection, query, where, getDocs } from 'firebase/firestore';  // Firestore import
-import { useUser } from '@clerk/clerk-expo';  // For user authentication
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  FlatList,
+  Alert,
+  StyleSheet,
+  Platform,
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons"; // For the mic icon
+import { useNavigation } from "@react-navigation/native";
+import * as Speech from "expo-speech"; // For text-to-speech feedback
+import {
+  getFirestore,
+  collection,
+  query,
+  where,
+  getDocs,
+} from "firebase/firestore"; // Firestore import
+import { useUser } from "@clerk/clerk-expo"; // For user authentication
 
 export default function CreateList() {
   const [shoppingList, setShoppingList] = useState([]);
   const [isListening, setIsListening] = useState(false);
-  const [transcript, setTranscript] = useState('');
-  const [shops, setShops] = useState([]);  // State to store shops
+  const [transcript, setTranscript] = useState("");
+  const [shops, setShops] = useState([]); // State to store shops
   const navigation = useNavigation();
-  const db = getFirestore();  // Firestore database reference
-  const { user } = useUser();  // Fetch current user details
+  const db = getFirestore(); // Firestore database reference
+  const { user } = useUser(); // Fetch current user details
+  const [selectedShop, setSelectedShop] = useState(null); // Holds the selected shop details
+  const [crowdCount, setCrowdCount] = useState(null); // Holds the crowd count for the selected shop
 
   // Function to start voice command using Web Speech API
   const startVoiceCommand = () => {
-    if (Platform.OS !== 'web') {
-      Alert.alert("Sorry!", "Voice commands are only supported in web platforms currently.");
+    if (Platform.OS !== "web") {
+      Alert.alert(
+        "Sorry!",
+        "Voice commands are only supported in web platforms currently."
+      );
       return;
     }
 
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const SpeechRecognition =
+      window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
       Alert.alert("Browser doesn't support speech recognition");
       return;
@@ -30,7 +50,7 @@ export default function CreateList() {
 
     const recognition = new SpeechRecognition();
     recognition.continuous = false;
-    recognition.lang = 'en-US';
+    recognition.lang = "en-US";
     recognition.interimResults = false;
 
     recognition.onstart = () => {
@@ -42,7 +62,7 @@ export default function CreateList() {
       const spokenText = event.results[0][0].transcript;
       setTranscript(spokenText);
       console.log("Spoken text:", spokenText);
-      processVoiceCommand(spokenText);  // Process the recognized speech
+      processVoiceCommand(spokenText); // Process the recognized speech
     };
 
     recognition.onerror = (event) => {
@@ -62,40 +82,44 @@ export default function CreateList() {
     const lowerCaseCommand = command.toLowerCase();
 
     // Handle "add" command (e.g., "add sugar 1kg")
-    if (lowerCaseCommand.startsWith('add')) {
-      const itemDetails = lowerCaseCommand.replace('add', '').trim();
+    if (lowerCaseCommand.startsWith("add")) {
+      const itemDetails = lowerCaseCommand.replace("add", "").trim();
       if (itemDetails) {
         addItemToList(itemDetails);
       } else {
-        Alert.alert('No item specified', 'Please say the item and quantity, e.g., "add sugar 1kg".');
+        Alert.alert(
+          "No item specified",
+          'Please say the item and quantity, e.g., "add sugar 1kg".'
+        );
       }
     }
     // Handle "remove" command (e.g., "remove milk")
-    else if (lowerCaseCommand.startsWith('remove')) {
-      const itemToRemove = lowerCaseCommand.replace('remove', '').trim();
+    else if (lowerCaseCommand.startsWith("remove")) {
+      const itemToRemove = lowerCaseCommand.replace("remove", "").trim();
       if (itemToRemove) {
         removeItemFromList(itemToRemove);
       } else {
-        Alert.alert('No item specified', 'Please say the item to remove, e.g., "remove milk".');
+        Alert.alert(
+          "No item specified",
+          'Please say the item to remove, e.g., "remove milk".'
+        );
       }
     }
     // Handle "save my list" command
-    else if (lowerCaseCommand.includes('save my list')) {
-      saveListToFirebase();  // Save the list to Firebase
+    else if (lowerCaseCommand.includes("save my list")) {
+      saveListToFirebase(); // Save the list to Firebase
     }
     // Handle "open my shopping list" command
-    else if (lowerCaseCommand.includes('open my shopping list')) {
-      fetchShoppingListFromFirebase();  // Fetch the list from Firebase
-    }
-    else if (lowerCaseCommand.includes('find shop near me')) {
-      findNearbyShops();  // Fetch nearby shops
+    else if (lowerCaseCommand.includes("open my shopping list")) {
+      fetchShoppingListFromFirebase(); // Fetch the list from Firebase
+    } else if (lowerCaseCommand.includes("find shop near me")) {
+      findNearbyShops(); // Fetch nearby shops
     }
     // Handle "select {shop name}" command
-    else if (lowerCaseCommand.startsWith('select')) {
-      const shopName = lowerCaseCommand.replace('select', '').trim();
-      selectShopByName(shopName);  // Handle selecting a shop by its name
-    }
-    else {
+    else if (lowerCaseCommand.startsWith("select")) {
+      const shopName = lowerCaseCommand.replace("select", "").trim();
+      selectShopByName(shopName); // Handle selecting a shop by its name
+    } else {
       Alert.alert("Command not recognized", `You said: "${command}"`);
     }
   };
@@ -111,155 +135,185 @@ export default function CreateList() {
 
   // Remove item from the shopping list
   const removeItemFromList = (itemName) => {
-    const updatedList = shoppingList.filter((item) => !item.name.toLowerCase().includes(itemName.toLowerCase()));
+    const updatedList = shoppingList.filter(
+      (item) => !item.name.toLowerCase().includes(itemName.toLowerCase())
+    );
     if (updatedList.length === shoppingList.length) {
-      Alert.alert('Item not found', `No matching item for: "${itemName}"`);
+      Alert.alert("Item not found", `No matching item for: "${itemName}"`);
     } else {
       setShoppingList(updatedList);
-      Speech.speak(`${itemName} removed from your list`);  // Use TTS for item removal
-      Alert.alert('Success', `"${itemName}" has been removed from your shopping list.`);
+      Speech.speak(`${itemName} removed from your list`); // Use TTS for item removal
+      Alert.alert(
+        "Success",
+        `"${itemName}" has been removed from your shopping list.`
+      );
     }
   };
 
   // Fetch the user's shopping list from Firebase
   const fetchShoppingListFromFirebase = async () => {
     try {
-      const q = query(collection(db, 'UserLists'), where('userId', '==', user.id));
+      const q = query(
+        collection(db, "UserLists"),
+        where("userId", "==", user.id)
+      );
       const querySnapshot = await getDocs(q);
 
       if (querySnapshot.empty) {
-        Alert.alert('No list found', 'You have not saved any shopping list.');
-        Speech.speak('You have no saved shopping list.');
+        Alert.alert("No list found", "You have not saved any shopping list.");
+        Speech.speak("You have no saved shopping list.");
         return;
       }
 
       const fetchedList = [];
       querySnapshot.forEach((doc) => {
         const data = doc.data();
-        
+
         // Check if 'list' field exists in the document and is an array
         if (data.list && Array.isArray(data.list)) {
           // Loop through the items in the 'list' array
           data.list.forEach((item) => {
             if (item.name) {
-              fetchedList.push(item);  // Add item to fetchedList if it has a 'name' field
+              fetchedList.push(item); // Add item to fetchedList if it has a 'name' field
             }
           });
         } else {
           console.error("Error: 'list' field is missing or not an array");
-          Alert.alert('Error', 'List is missing or improperly structured in Firebase.');
+          Alert.alert(
+            "Error",
+            "List is missing or improperly structured in Firebase."
+          );
           return;
         }
       });
 
       setShoppingList(fetchedList);
-      Speech.speak('Your shopping list has been opened.');
+      Speech.speak("Your shopping list has been opened.");
     } catch (error) {
       console.error("Error fetching list from Firebase:", error);
-      Alert.alert('Error', 'Failed to fetch the list. Please try again.');
+      Alert.alert("Error", "Failed to fetch the list. Please try again.");
     }
   };
 
   // Save the list to Firebase Firestore
   const saveListToFirebase = async () => {
     if (shoppingList.length === 0) {
-      Alert.alert('Your list is empty', 'Please add items to your list before saving.');
+      Alert.alert(
+        "Your list is empty",
+        "Please add items to your list before saving."
+      );
       return;
     }
 
     try {
-      await addDoc(collection(db, 'UserLists'), {
+      await addDoc(collection(db, "UserLists"), {
         userId: user.id,
         list: shoppingList,
         createdAt: new Date().toISOString(),
       });
 
-      Alert.alert('Success', 'Your shopping list has been saved!');
-      Speech.speak('Your shopping list has been saved');  // Voice feedback on successful save
-      setShoppingList([]);  // Clear the list after saving
+      Alert.alert("Success", "Your shopping list has been saved!");
+      Speech.speak("Your shopping list has been saved"); // Voice feedback on successful save
+      setShoppingList([]); // Clear the list after saving
     } catch (error) {
       console.error("Error saving list to Firebase:", error);
-      Alert.alert('Error', 'Failed to save the list. Please try again.');
+      Alert.alert("Error", "Failed to save the list. Please try again.");
     }
   };
 
   // Function to fetch nearby shops from Firestore
   const findNearbyShops = async () => {
     try {
-      const querySnapshot = await getDocs(collection(db, 'users')); // Fetching from the "users" collection
-      
+      const querySnapshot = await getDocs(collection(db, "users")); // Fetching from the "users" collection
+
       if (querySnapshot.empty) {
-        Alert.alert('No shops found');
-        Speech.speak('No shops found nearby.');
+        Alert.alert("No shops found");
+        Speech.speak("No shops found nearby.");
         return;
       }
 
       const shopList = [];
       querySnapshot.forEach((doc) => {
         const shopData = doc.data();
-        
+
         // Ensure the document has shop details
         if (shopData.shopID && shopData.shopname) {
           shopList.push({
             shopID: shopData.shopID,
             shopname: shopData.shopname,
-            brnumber: shopData.brnumber,  // Assuming brnumber is stored in the shop document
+            brnumber: shopData.brnumber, // Assuming brnumber is stored in the shop document
           });
         }
       });
 
-      setShops(shopList);  // Save the shop list to state
-
+      setShops(shopList); // Save the shop list to state
+      console.log(shopList);
       if (shopList.length > 0) {
-        Speech.speak('Nearby shops found. You can select a shop from the list.');
+        Speech.speak(
+          "Nearby shops found. You can select a shop from the list."
+        );
         shopList.forEach((shop) => {
           Speech.speak(`Shop: ${shop.shopname}`);
         });
       } else {
-        Speech.speak('No shops found nearby.');
+        Speech.speak("No shops found nearby.");
       }
     } catch (error) {
-      Alert.alert('Error', 'Failed to fetch shops.');
-      Speech.speak('Failed to fetch nearby shops.');
+      Alert.alert("Error", "Failed to fetch shops.");
+      Speech.speak("Failed to fetch nearby shops.");
     }
   };
 
   // Function to select a shop by its name
   const selectShopByName = async (shopName) => {
-    const selectedShop = shops.find(shop => shop.shopname.toLowerCase() === shopName.toLowerCase());
+    const normalizedShopName = shopName
+      .replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, "")
+      .trim()
+      .toLowerCase();
+
+    const selectedShop = shops.find(
+      (shop) => shop.shopname.trim().toLowerCase() === normalizedShopName
+    );
 
     if (selectedShop) {
-      // Fetch crowd count from Firestore using the shop's brnumber
       try {
-        const q = query(collection(db, 'crowdCount'), where('brnumber', '==', selectedShop.brnumber));
+        const q = query(
+          collection(db, "crowdcount"),
+          where("brnumber", "==", selectedShop.brnumber)
+        );
         const querySnapshot = await getDocs(q);
         let crowdCount = 0;
 
         if (!querySnapshot.empty) {
           querySnapshot.forEach((doc) => {
             const data = doc.data();
-            crowdCount = data.count;  // Assuming 'count' is the field in 'crowdCount' collection
+            crowdCount = data.crowdCount; // Assuming 'crowdCount' is the field in the document
           });
+
+          // Update state with selected shop and its crowd count
+          setSelectedShop(selectedShop); // Set the selected shop
+          setCrowdCount(crowdCount); // Set the crowd count
+
+          Speech.speak(
+            `The current crowd count at ${selectedShop.shopname} is ${crowdCount}.`
+          );
         } else {
-          Alert.alert('Crowd data not found', 'No crowd count data found for the selected shop.');
-          Speech.speak('Crowd data not found for this shop.');
-          return;
+          Alert.alert(
+            "Crowd data not found",
+            "No crowd count data found for the selected shop."
+          );
+          Speech.speak("Crowd data not found for this shop.");
         }
-
-        // Show the crowd count in an alert
-        Alert.alert(
-          `Shop: ${selectedShop.shopname}`,
-          `Current crowd count: ${crowdCount}`
-        );
-        Speech.speak(`The current crowd count at ${selectedShop.shopname} is ${crowdCount}.`);
-
       } catch (error) {
         console.error("Error fetching crowd count:", error);
-        Alert.alert('Error', 'Failed to fetch the crowd count. Please try again.');
-        Speech.speak('Failed to fetch the crowd count.');
+        Alert.alert(
+          "Error",
+          "Failed to fetch the crowd count. Please try again."
+        );
+        Speech.speak("Failed to fetch the crowd count.");
       }
     } else {
-      Alert.alert('Shop not found', `The shop "${shopName}" was not found.`);
+      Alert.alert("Shop not found", `The shop "${shopName}" was not found.`);
       Speech.speak(`The shop ${shopName} was not found.`);
     }
   };
@@ -290,12 +344,24 @@ export default function CreateList() {
         renderItem={({ item }) => (
           <View style={styles.listItem}>
             <Text style={styles.itemText}>{item.shopname}</Text>
-            <TouchableOpacity onPress={() => Alert.alert(`Selected shop: ${item.shopname}`)}>
+            <TouchableOpacity
+              onPress={() => Alert.alert(`Selected shop: ${item.shopname}`)}
+            >
               <Ionicons name="md-storefront" size={24} color="blue" />
             </TouchableOpacity>
           </View>
         )}
       />
+
+      {/* Display Selected Shop and Crowd Count */}
+      {selectedShop && (
+        <View style={styles.crowdCountContainer}>
+          <Text style={styles.title}>Crowd Count in Selected Store</Text>
+          <Text style={styles.selectedShopText}>
+            {selectedShop.shopname} - Current Crowd: {crowdCount}
+          </Text>
+        </View>
+      )}
 
       {/* Start Voice Command Button */}
       <TouchableOpacity style={styles.micButton} onPress={startVoiceCommand}>
@@ -313,43 +379,56 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
   },
   title: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 20,
   },
   listItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     padding: 10,
     marginBottom: 10,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: "#f0f0f0",
     borderRadius: 5,
   },
   itemText: {
     fontSize: 18,
   },
   micButton: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 30,
     right: 30,
-    backgroundColor: '#FF6500',
+    backgroundColor: "#FF6500",
     width: 60,
     height: 60,
     borderRadius: 30,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   listeningText: {
     marginTop: 20,
     fontSize: 16,
-    color: 'gray',
+    color: "gray",
+  },
+  crowdCountContainer: {
+    marginTop: 20,
+    padding: 10,
+    backgroundColor: "#f9f9f9",
+    borderRadius: 5,
+    borderWidth: 1,
+    borderColor: "#ddd",
+  },
+  selectedShopText: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#333",
   },
   transcriptText: {
     marginTop: 10,
     fontSize: 16,
-    color: 'gray',
+    color: "gray",
   },
 });
