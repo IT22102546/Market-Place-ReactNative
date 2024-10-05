@@ -10,6 +10,7 @@ export default function CreateList() {
   const [shoppingList, setShoppingList] = useState([]);
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState('');
+  const [shops, setShops] = useState([]);  // State to store shops
   const navigation = useNavigation();
   const db = getFirestore();  // Firestore database reference
   const { user } = useUser();  // Fetch current user details
@@ -86,7 +87,14 @@ export default function CreateList() {
     else if (lowerCaseCommand.includes('open my shopping list')) {
       fetchShoppingListFromFirebase();  // Fetch the list from Firebase
     }
-    // Other commands can be added similarly
+    else if (lowerCaseCommand.includes('find shop near me')) {
+      findNearbyShops();  // Fetch nearby shops
+    }
+    // Handle "select {shop name}" command
+    else if (lowerCaseCommand.startsWith('select')) {
+      const shopName = lowerCaseCommand.replace('select', '').trim();
+      selectShopByName(shopName);  // Handle selecting a shop by its name
+    }
     else {
       Alert.alert("Command not recognized", `You said: "${command}"`);
     }
@@ -114,43 +122,43 @@ export default function CreateList() {
   };
 
   // Fetch the user's shopping list from Firebase
-const fetchShoppingListFromFirebase = async () => {
-  try {
-    const q = query(collection(db, 'UserLists'), where('userId', '==', user.id));
-    const querySnapshot = await getDocs(q);
+  const fetchShoppingListFromFirebase = async () => {
+    try {
+      const q = query(collection(db, 'UserLists'), where('userId', '==', user.id));
+      const querySnapshot = await getDocs(q);
 
-    if (querySnapshot.empty) {
-      Alert.alert('No list found', 'You have not saved any shopping list.');
-      Speech.speak('You have no saved shopping list.');
-      return;
-    }
-
-    const fetchedList = [];
-    querySnapshot.forEach((doc) => {
-      const data = doc.data();
-      
-      // Check if 'list' field exists in the document and is an array
-      if (data.list && Array.isArray(data.list)) {
-        // Loop through the items in the 'list' array
-        data.list.forEach((item) => {
-          if (item.name) {
-            fetchedList.push(item);  // Add item to fetchedList if it has a 'name' field
-          }
-        });
-      } else {
-        console.error("Error: 'list' field is missing or not an array");
-        Alert.alert('Error', 'List is missing or improperly structured in Firebase.');
+      if (querySnapshot.empty) {
+        Alert.alert('No list found', 'You have not saved any shopping list.');
+        Speech.speak('You have no saved shopping list.');
         return;
       }
-    });
 
-    setShoppingList(fetchedList);
-    Speech.speak('Your shopping list has been opened.');
-  } catch (error) {
-    console.error("Error fetching list from Firebase:", error);
-    Alert.alert('Error', 'Failed to fetch the list. Please try again.');
-  }
-};
+      const fetchedList = [];
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        
+        // Check if 'list' field exists in the document and is an array
+        if (data.list && Array.isArray(data.list)) {
+          // Loop through the items in the 'list' array
+          data.list.forEach((item) => {
+            if (item.name) {
+              fetchedList.push(item);  // Add item to fetchedList if it has a 'name' field
+            }
+          });
+        } else {
+          console.error("Error: 'list' field is missing or not an array");
+          Alert.alert('Error', 'List is missing or improperly structured in Firebase.');
+          return;
+        }
+      });
+
+      setShoppingList(fetchedList);
+      Speech.speak('Your shopping list has been opened.');
+    } catch (error) {
+      console.error("Error fetching list from Firebase:", error);
+      Alert.alert('Error', 'Failed to fetch the list. Please try again.');
+    }
+  };
 
   // Save the list to Firebase Firestore
   const saveListToFirebase = async () => {
@@ -175,7 +183,86 @@ const fetchShoppingListFromFirebase = async () => {
     }
   };
 
-  
+  // Function to fetch nearby shops from Firestore
+  const findNearbyShops = async () => {
+    try {
+      const querySnapshot = await getDocs(collection(db, 'users')); // Fetching from the "users" collection
+      
+      if (querySnapshot.empty) {
+        Alert.alert('No shops found');
+        Speech.speak('No shops found nearby.');
+        return;
+      }
+
+      const shopList = [];
+      querySnapshot.forEach((doc) => {
+        const shopData = doc.data();
+        
+        // Ensure the document has shop details
+        if (shopData.shopID && shopData.shopname) {
+          shopList.push({
+            shopID: shopData.shopID,
+            shopname: shopData.shopname,
+            brnumber: shopData.brnumber,  // Assuming brnumber is stored in the shop document
+          });
+        }
+      });
+
+      setShops(shopList);  // Save the shop list to state
+
+      if (shopList.length > 0) {
+        Speech.speak('Nearby shops found. You can select a shop from the list.');
+        shopList.forEach((shop) => {
+          Speech.speak(`Shop: ${shop.shopname}`);
+        });
+      } else {
+        Speech.speak('No shops found nearby.');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to fetch shops.');
+      Speech.speak('Failed to fetch nearby shops.');
+    }
+  };
+
+  // Function to select a shop by its name
+  const selectShopByName = async (shopName) => {
+    const selectedShop = shops.find(shop => shop.shopname.toLowerCase() === shopName.toLowerCase());
+
+    if (selectedShop) {
+      // Fetch crowd count from Firestore using the shop's brnumber
+      try {
+        const q = query(collection(db, 'crowdCount'), where('brnumber', '==', selectedShop.brnumber));
+        const querySnapshot = await getDocs(q);
+        let crowdCount = 0;
+
+        if (!querySnapshot.empty) {
+          querySnapshot.forEach((doc) => {
+            const data = doc.data();
+            crowdCount = data.count;  // Assuming 'count' is the field in 'crowdCount' collection
+          });
+        } else {
+          Alert.alert('Crowd data not found', 'No crowd count data found for the selected shop.');
+          Speech.speak('Crowd data not found for this shop.');
+          return;
+        }
+
+        // Show the crowd count in an alert
+        Alert.alert(
+          `Shop: ${selectedShop.shopname}`,
+          `Current crowd count: ${crowdCount}`
+        );
+        Speech.speak(`The current crowd count at ${selectedShop.shopname} is ${crowdCount}.`);
+
+      } catch (error) {
+        console.error("Error fetching crowd count:", error);
+        Alert.alert('Error', 'Failed to fetch the crowd count. Please try again.');
+        Speech.speak('Failed to fetch the crowd count.');
+      }
+    } else {
+      Alert.alert('Shop not found', `The shop "${shopName}" was not found.`);
+      Speech.speak(`The shop ${shopName} was not found.`);
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -190,6 +277,21 @@ const fetchShoppingListFromFirebase = async () => {
             <Text style={styles.itemText}>{item.name}</Text>
             <TouchableOpacity onPress={() => removeItemFromList(item.name)}>
               <Ionicons name="trash" size={24} color="red" />
+            </TouchableOpacity>
+          </View>
+        )}
+      />
+
+      {/* Display Found Shops */}
+      <Text style={styles.title}>Nearby Shops</Text>
+      <FlatList
+        data={shops}
+        keyExtractor={(item) => item.shopID}
+        renderItem={({ item }) => (
+          <View style={styles.listItem}>
+            <Text style={styles.itemText}>{item.shopname}</Text>
+            <TouchableOpacity onPress={() => Alert.alert(`Selected shop: ${item.shopname}`)}>
+              <Ionicons name="md-storefront" size={24} color="blue" />
             </TouchableOpacity>
           </View>
         )}
