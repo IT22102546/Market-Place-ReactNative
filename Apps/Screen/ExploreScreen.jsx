@@ -177,7 +177,7 @@ export default function Explore() {
     if (productList.length > 0) {
       Speech.speak(`There are ${productList.length} available products.`);
       productList.forEach(item => {
-        Speech.speak(`Name: ${item.title}. Description: ${item.desc}. Price: ${item.price}. Size: ${item.size}. Store Name: ${item.userName}.Product available at :${item.cell} `);
+        Speech.speak(`Name: ${item.title}. Description: ${item.desc}. Price: ${item.price}. Size: ${item.size}. Product available at cell number: ${item.cell}.  Store Name: ${item.userName}`);
       });
     } else {
       Speech.speak(`No available products at the moment.`);
