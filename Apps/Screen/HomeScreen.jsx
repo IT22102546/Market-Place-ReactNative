@@ -82,6 +82,7 @@ export default function HomeScreen() {
     recognition.start();
   };
 
+  
   // Function to process voice commands related to category navigation
   const processVoiceCommand = (command, categoryList) => {
     const lowerCaseCommand = command.toLowerCase();
@@ -99,10 +100,17 @@ export default function HomeScreen() {
         Alert.alert('Category not found', `No category found with the name "${categoryName}".`);
         Speech.speak(`No category found with the name ${categoryName}`);
       }
-    } else {
+    } // Handle "list categories" command
+    else if (lowerCaseCommand.startsWith('list categories')) {
+      const categoryNames = categoryList.map(category => category.name).join(', ');
+      Speech.speak(`Available categories are: ${categoryNames}`);
+      Alert.alert('Available Categories', categoryNames);
+    } 
+    else {
       Alert.alert("Command not recognized", `You said: "${command}"`);
       Speech.speak(`Command not recognized: ${command}`);
     }
+  
   };
   
 
