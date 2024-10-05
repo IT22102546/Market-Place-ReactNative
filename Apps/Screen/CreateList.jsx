@@ -79,10 +79,6 @@ export default function CreateList() {
         Alert.alert('No item specified', 'Please say the item to remove, e.g., "remove milk".');
       }
     }
-    // Handle "save my list" command
-    else if (lowerCaseCommand.includes('save my list')) {
-      saveListToFirebase(); // Save the list to Firebase
-    }
     // Handle "open my shopping list" command
     else if (lowerCaseCommand.includes('open my shopping list')) {
       fetchShoppingListFromFirebase(); // Fetch the list from Firebase
@@ -134,15 +130,15 @@ export default function CreateList() {
     const updatedList = shoppingList.filter((item) => {
       return !item.name.toLowerCase().includes(itemName.toLowerCase());
     });
-
+  
     if (updatedList.length === shoppingList.length) {
       Alert.alert('Item not found', `No matching item for: "${itemName}"`);
     } else {
       // Find the item that was removed to get its Firestore ID
       const removedItem = shoppingList.find((item) => item.name.toLowerCase().includes(itemName.toLowerCase()));
-
+  
       // Remove from Firestore
-      if (removedItem) {
+      if (removedItem && removedItem.firestoreId) {
         try {
           const itemRef = doc(db, 'UserLists', removedItem.firestoreId); // Use Firestore ID for deletion
           await deleteDoc(itemRef); // Delete the item from Firestore
@@ -152,12 +148,13 @@ export default function CreateList() {
           Alert.alert('Error', 'Failed to remove item from Firestore.');
         }
       }
-
+  
       setShoppingList(updatedList);
       Speech.speak(`${itemName} removed from your list`); // Use TTS for item removal
       Alert.alert('Success', `"${itemName}" has been removed from your shopping list.`);
     }
   };
+  
 
   const deleteAllItemsFromFirestore = async () => {
     try {
@@ -196,8 +193,8 @@ export default function CreateList() {
       const fetchedList = [];
       querySnapshot.forEach((doc) => {
         const data = doc.data();
-        if (data.name) {
-          fetchedList.push({ name: data.name, firestoreId: doc.id }); // Add Firestore ID here
+        if (data.title) {
+          fetchedList.push({ name: data.title, firestoreId: doc.id }); // Add Firestore ID here
         }
       });
 
@@ -224,26 +221,6 @@ export default function CreateList() {
     Speech.speak('All items have been removed from your shopping list.');
   };
 
-  // Save the list to Firebase Firestore
-  const saveListToFirebase = async () => {
-    if (shoppingList.length === 0) {
-      Alert.alert('Your list is empty', 'Please add items to your list before saving.');
-      return;
-    }
-
-    try {
-      await addDoc(collection(db, 'UserLists'), {
-        userId: user.id,
-        list: shoppingList,
-        createdAt: new Date().toISOString(),
-      });
-      Alert.alert('List saved', 'Your shopping list has been saved successfully.');
-      Speech.speak('Your shopping list has been saved successfully.');
-    } catch (error) {
-      console.error('Error saving list to Firebase:', error);
-      Alert.alert('Error', 'Failed to save the list to Firebase.');
-    }
-  }
 
   const findNearbyShops = async () => {
     try {
