@@ -180,12 +180,7 @@ export default function PostItem({ item, productList }) {
       </View>
 
       {/* Microphone Button */}
-      <TouchableOpacity style={styles.micButton} onPress={startVoiceCommand}>
-        <Ionicons name="mic" size={30} color="white" />
-      </TouchableOpacity>
-
-      {isListening && <Text style={styles.listeningText}>Listening...</Text>}
-      <Text style={styles.transcriptText}>Transcript: {transcript}</Text>
+     
     </TouchableOpacity>
   );
 }
