@@ -89,6 +89,9 @@ export default function CreateList() {
     else if (lowerCaseCommand.includes('tell my list')) {
       readShoppingList(); // Call the function to read the shopping list
     }
+    else if (lowerCaseCommand.includes('give summary')) {
+      giveShoppingListSummary(); 
+    }
     // Handle "find shop near me" command
     else if (lowerCaseCommand.includes('find shop near me')) {
       findNearbyShops(); // Fetch nearby shops
@@ -221,6 +224,25 @@ export default function CreateList() {
       console.error("Error fetching list from Firebase:", error);
       Alert.alert('Error', 'Failed to fetch the list. Please try again.');
     }
+  };
+
+
+  const giveShoppingListSummary = () => {
+    if (shoppingList.length === 0) {
+      Speech.speak('Your shopping list is empty.');
+      return;
+    }
+  
+    // Map over shoppingList to include both name and price in the summary
+    const itemsSummary = shoppingList.map(item => `${item.title} priced at ${item.price || 0} rupees`).join(', ');
+  
+    // Calculate the total amount
+    const totalAmount = shoppingList.reduce((total, item) => {
+      return total + (item.price || 0);
+    }, 0);
+  
+    // Use Text-to-Speech (TTS) to give the summary
+    Speech.speak(`Your shopping list contains: ${itemsSummary}. The total amount is ${totalAmount} rupees.`);
   };
 
   
