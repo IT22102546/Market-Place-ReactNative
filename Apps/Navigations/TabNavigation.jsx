@@ -62,13 +62,6 @@ export default function TabNavigation() {
       />
 
       <Tab.Screen
-        name="addpost"
-        component={AddPostScreen}
-        options={{
-          tabBarLabel: "Add Post",
-        }}
-      />
-      <Tab.Screen
         name="list"
         component={CreateListStackNavigation}
         options={{

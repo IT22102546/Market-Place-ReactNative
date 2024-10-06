@@ -3,7 +3,7 @@ import React from 'react';
 import PostItem from './PostItem';
 import tw from 'twrnc';
 
-export default function LatestItemList({ latestItemList, heading }) {
+export default function LatestItemList({ latestItemList, productList, heading }) {
   return (
     <View style={tw``} accessible={true} accessibilityLabel={`${heading} section`}>
       <Text style={tw`font-bold text-xl mb-4 mt-3`} accessible={true} accessibilityRole="header">
@@ -16,8 +16,9 @@ export default function LatestItemList({ latestItemList, heading }) {
         renderItem={({ item, index }) => (
           <PostItem
             item={item}
+            productList={productList} // Pass the productList here
             accessible={true}
-            accessibilityLabel={`Latest item: ${item.name}`}
+            accessibilityLabel={`Latest item: ${item.title}`} // Change to `item.title` for accuracy
           />
         )}
         contentContainerStyle={tw`gap-2`} // Added some spacing between items
