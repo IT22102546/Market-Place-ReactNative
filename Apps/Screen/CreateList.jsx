@@ -12,8 +12,10 @@ export default function CreateList() {
   const [transcript, setTranscript] = useState('');
   const [shops, setShops] = useState([]); // State to store shops
   const navigation = useNavigation();
+  const [selectedShop, setSelectedShop] = useState(null); // Holds the selected shop details
   const db = getFirestore(); // Firestore database reference
   const { user } = useUser(); // Fetch current user details
+  const [crowdCount, setCrowdCount] = useState(null);
 
   // Function to start voice command using Web Speech API
   const startVoiceCommand = () => {
@@ -86,7 +88,7 @@ export default function CreateList() {
     else if (lowerCaseCommand.includes('delete list')) {
       deleteAllItemsFromFirestore(); // Call confirmation before deletion
     } 
-    else if (lowerCaseCommand.includes('tell my list')) {
+    else if (lowerCaseCommand.includes('read my list')) {
       readShoppingList(); // Call the function to read the shopping list
     }
     else if (lowerCaseCommand.includes('give summary')) {
@@ -102,7 +104,7 @@ export default function CreateList() {
       selectShopByName(shopName); // Handle selecting a shop by its name
     }
      // Handle "tell total amount" command
-   else if (lowerCaseCommand.includes('tell total amount')) {
+   else if (lowerCaseCommand.includes('give total amount')) {
     tellTotalAmount(); // Calculate and speak the total amount
   }
     else {
@@ -307,6 +309,59 @@ export default function CreateList() {
     } catch (error) {
       Alert.alert('Error', 'Failed to fetch shops.');
       Speech.speak('Failed to fetch nearby shops.');
+    }
+  };
+
+  const selectShopByName = async (shopName) => {
+    const normalizedShopName = shopName
+      .replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, "")
+      .trim()
+      .toLowerCase();
+
+    const selectedShop = shops.find(
+      (shop) => shop.shopname.trim().toLowerCase() === normalizedShopName
+    );
+
+    if (selectedShop) {
+      try {
+        const q = query(
+          collection(db, "crowdcount"),
+          where("brnumber", "==", selectedShop.brnumber)
+        );
+        const querySnapshot = await getDocs(q);
+        let crowdCount = 0;
+
+        if (!querySnapshot.empty) {
+          querySnapshot.forEach((doc) => {
+            const data = doc.data();
+            crowdCount = data.crowdCount; // Assuming 'crowdCount' is the field in the document
+          });
+
+          // Update state with selected shop and its crowd count
+          setSelectedShop(selectedShop); // Set the selected shop
+          setCrowdCount(crowdCount); // Set the crowd count
+
+          Speech.speak(
+            `The current crowd count at ${selectedShop.shopname} is ${crowdCount}.`
+          );
+        } else {
+          Alert.alert(
+            "Crowd data not found",
+            "No crowd count data found for the selected shop."
+          );
+          Speech.speak("Crowd data not found for this shop.");
+        }
+      } catch (error) {
+        console.error("Error fetching crowd count:", error);
+        Alert.alert(
+          "Error",
+          "Failed to fetch the crowd count. Please try again."
+        );
+        Speech.speak("Failed to fetch the crowd count.");
+      }
+    } else {
+      Alert.alert("Shop not found", `The shop "${shopName}" was not found.`);
+      Speech.speak(`The shop ${shopName} was not found.`);
     }
   };
 
