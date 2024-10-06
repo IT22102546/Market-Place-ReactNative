@@ -234,17 +234,21 @@ export default function CreateList() {
     }
   
     // Map over shoppingList to include both name and price in the summary
-    const itemsSummary = shoppingList.map(item => `${item.title} priced at ${item.price || 0} rupees`).join(', ');
+    const itemsSummary = shoppingList.map(item => {
+      const itemPrice = parseFloat(item.price) || 0; // Ensure price is a number or default to 0
+      return `${item.name} priced at ${itemPrice} rupees`;
+    }).join(', ');
   
     // Calculate the total amount
     const totalAmount = shoppingList.reduce((total, item) => {
-      return total + (item.price || 0);
+      const itemPrice = parseFloat(item.price) || 0; // Ensure price is treated as a number
+      return total + itemPrice;
     }, 0);
   
     // Use Text-to-Speech (TTS) to give the summary
     Speech.speak(`Your shopping list contains: ${itemsSummary}. The total amount is ${totalAmount} rupees.`);
   };
-
+  
   
   
 
